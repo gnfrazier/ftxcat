@@ -157,13 +157,14 @@ def set_mode(ftx: FTX1Controller, mode: OperatingMode, side: Literal[0, 1] = 0) 
 
 def get_mode(ftx: FTX1Controller, side: Literal[0, 1] = 0) -> str:
     """
-    Get operating mode
-    
+    Get operating mode.
+
     Args:
         side: 0 for MAIN, 1 for SUB
-        
+
     Returns:
-        Mode code
+        Mode string P1+P2 (side and mode code), e.g. "02" for MAIN USB.
+        Single mode character is response[-1] (e.g. "2" for USB).
     """
     response = ftx._send_command(f"MD{side}")
     return response[3:]
@@ -367,18 +368,26 @@ def toggle_vfo_memory(ftx: FTX1Controller, side: Literal[0, 1] = 0) -> None:
 def set_memory_channel(ftx: FTX1Controller, channel: int, side: Literal[0, 1] = 0) -> None:
     """
     Set memory channel
-    
+
     Args:
         ftx: FTX1Controller instance
-        channel: Memory channel (1-999)
+        channel: Memory channel (1-99 per CAT manual) TODO test beyond 99
         side: 0 for MAIN, 1 for SUB
     """
+    # Manual: MC P2 = 00001-00099 (Memory Channel); PMS/5MHz/EMGCH use other ranges
+    if not 1 <= channel <= 99:
+        raise ValueError("channel must be 1-99 per CAT manual (00001-00099)")
     ftx._send_command(f"MC{side}{channel:05d}")
 
 
 def memory_to_vfo(ftx: FTX1Controller) -> None:
     """Transfer memory data to VFO (MAIN-side)"""
     ftx._send_command("MA")
+
+
+def memory_to_vfo_sub(ftx: FTX1Controller) -> None:
+    """Transfer memory data to VFO (SUB-side). Sends MB per CAT manual."""
+    ftx._send_command("MB")
 
 
 # =============================================================================
@@ -431,10 +440,10 @@ def set_clarifier(ftx: FTX1Controller, rx_on: bool, tx_on: bool,
     sign = '+' if offset_hz >= 0 else '-'
     freq = abs(offset_hz)
     
-    # Set clarifier on/off
-    ftx._send_command(f"CF{side}0{rx}{tx}000")
-    # Set frequency offset
-    ftx._send_command(f"CF{side}1{sign}{freq:04d}")
+    # Set clarifier on/off (P2=0 Fixed, P3=0 CLAR Setting per manual)
+    ftx._send_command(f"CF{side}00{rx}{tx}000")
+    # Set frequency offset (P2=0 Fixed, P3=1 CLAR Frequency per manual)
+    ftx._send_command(f"CF{side}01{sign}{freq:04d}")
 
 
 # =============================================================================
@@ -648,7 +657,7 @@ def get_radio_info(ftx: FTX1Controller) -> dict:
         'mode': response[23],
         'vfo_memory': response[24],
         'tone_mode': response[25],
-        'repeater_shift': response[29]
+        'repeater_shift': response[28] # Per manual
     }
 
 

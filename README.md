@@ -1,6 +1,57 @@
 # ftxcat
 Control a Yaesu FTX-1 over USB with Python
 
+## Getting Started
+
+From a Python prompt, connect to the radio then use the module functions with your controller instance. Examples assume the radio is on a serial port (e.g. `/dev/ttyUSB0` on Linux or `COM5` on Windows).
+
+```python
+from ftxcontrol import FTX1Controller, get_frequency_main, set_frequency_main
+from ftxcontrol import set_rf_power, get_rf_power, get_radio_info
+
+ftx = FTX1Controller("/dev/ttyUSB0")   # or "COM5" on Windows
+```
+
+**Get MAIN-side frequency** (returns Hz):
+
+```python
+get_frequency_main(ftx)
+# 14250000
+```
+
+**Set MAIN-side frequency** (e.g. 14.250 MHz):
+
+```python
+set_frequency_main(ftx, 14250000)
+```
+
+**Set power (main-side)** — 5–10 W for FTX-1 Field (`unit=1`), or 5–100 W with SPA-1 (`unit=2`):
+
+```python
+set_rf_power(ftx, 10)
+set_rf_power(ftx, 50, unit=2)   # SPA-1
+```
+
+**Get current power setting** — returns `(unit, power_watts)`:
+
+```python
+get_rf_power(ftx)
+# (1, 10)
+```
+
+**Get VFO/main-side info** — frequency, mode, memory/VFO, clarifier, etc.:
+
+```python
+get_radio_info(ftx)
+# {'memory_channel': '00100', 'frequency': 14250000, 'clar_direction': '0', ...}
+```
+
+When done:
+
+```python
+ftx.close()
+```
+
 ## **EXPERIMENTAL**
 
 This project is in pre-alpha stage and all functions have not been tested. 
