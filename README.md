@@ -21,7 +21,7 @@ Before executing this Python script on your FTX-1, consult your common sense. Si
 
 ## Getting Started
 
-From a Python prompt, connect to the radio then use the module functions with your controller instance. Examples assume the radio is on a serial port (e.g. `/dev/ttyUSB0` on Linux or `COM5` on Windows).
+From a Python prompt, [connect to the radio](./Installation_and_Tranceiver_Setup.md) then use the module functions with your controller instance. Examples assume the radio is on a serial port (e.g. `/dev/ttyUSB0` on Linux or `COM5` on Windows).
 
 ```python
 from ftxcontrol import FTX1Controller, get_frequency_main, set_frequency_main
