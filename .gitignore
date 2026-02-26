@@ -1,7 +1,7 @@
 # Project specific files to ignore
 *manual.md 
 instructions.md 
-
+*.ipynb 
 
 
 # Byte-compiled / optimized / DLL files

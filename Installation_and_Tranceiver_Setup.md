@@ -1,4 +1,4 @@
-## TRANSCEIVER CAT/USB Setup for `ftxcontrol.py`
+# TRANSCEIVER CAT/USB Setup
 
 This guide summarizes the minimum radio and computer settings required to use CAT control over USB with the FTX‑1 series transceiver and the `ftxcontrol.py` script.
 
@@ -6,7 +6,7 @@ This guide summarizes the minimum radio and computer settings required to use CA
 
 ## 0. Getting the `ftxcat` Project (optional)
 
-- **Clone from GitHub (recommended if you use git)**
+**Clone from GitHub (recommended if you use git)**
 
 ```bash
 git clone https://github.com/gnfrazier/ftxcat.git
@@ -133,6 +133,103 @@ Adjust `COM5` to the Enhanced COM port you observed in Device Manager, and set `
 
 ```python
 FTX1Controller('COM5', baudrate=38400)
+```
+--- 
+## 2A Windows Subsystem for Linux (WSL) Setup
+
+### 2A.1 Install USBIPD
+Refer to [usbipd-win documentation](https://github.com/dorssel/usbipd-win/wiki/WSL-support)
+
+```powershell
+winget install usbipd
+```
+### 2A.2 Share USB port to WSL
+
+The command usbipd list lists all the USB devices connected to Windows. From an administrator command prompt on Windows, run this command.
+
+```powershell
+> usbipd list
+Connected:
+BUSID  VID:PID    DEVICE                                                        STATE
+2-6    06cb:00fc  Synaptics UWP WBDI                                            Not shared
+2-8    174f:1813  Integrated Camera, Integrated IR Camera, Camera DFU Device    Not shared
+2-10   8087:0033  Intel(R) Wireless Bluetooth(R)                                Not shared
+3-1    10c4:ea70  Silicon Labs Dual CP2105 USB to UART Bridge: Enhanced COM...  Not shared
+3-2    0d8c:0016  USB Audio Device, USB Input Device                            Not shared
+3-3    26aa:0030  USB Serial Device (COM6)                                      Not shared
+
+Persisted:
+GUID                                  DEVICE
+```
+Review the list of devices, look for the Silicon Labs CP2105 Enhanced.
+
+Bind the device to WSL
+
+```
+> usbipd bind --busid 3-1
+```
+Verify that the device has been shared.
+
+```
+> usbipd list
+Connected:
+BUSID  VID:PID    DEVICE                                                        STATE
+2-6    06cb:00fc  Synaptics UWP WBDI                                            Not shared
+2-8    174f:1813  Integrated Camera, Integrated IR Camera, Camera DFU Device    Not shared
+2-10   8087:0033  Intel(R) Wireless Bluetooth(R)                                Not shared
+3-1    10c4:ea70  Silicon Labs Dual CP2105 USB to UART Bridge: Enhanced COM...  Shared
+3-2    0d8c:0016  USB Audio Device, USB Input Device                            Not shared
+3-3    26aa:0030  USB Serial Device (COM6)                                      Not shared
+
+Persisted:
+GUID                                  DEVICE
+```
+
+### 2A.3 Attach to WSL
+Open a WSL prompt. Keep this prompt open to ensure WSL stays active.
+Close the adimnistrator powershell command prompt.
+Open a _new_ regular powershell prompt
+
+**NOTE Once the device is attached it will not be availible to Windows.***
+The device can be restored to windows by running the detach command, exiting all WSL prompts, unplugging the device, or restarting windows. 
+
+```powershell
+> usbipd attach --wsl --busid 3-1
+usbipd: info: Using WSL distribution 'Ubuntu' to attach; the device will be available in all WSL 2 distributions.
+usbipd: info: Loading vhci_hcd module.
+usbipd: info: Detected networking mode 'nat'.
+usbipd: info: Using IP address 172.26.160.1 to reach the host.
+```
+
+Verify the device
+```powershell
+> usbipd list
+Connected:
+BUSID  VID:PID    DEVICE                                                        STATE
+2-6    06cb:00fc  Synaptics UWP WBDI                                            Not shared
+2-8    174f:1813  Integrated Camera, Integrated IR Camera, Camera DFU Device    Not shared
+2-10   8087:0033  Intel(R) Wireless Bluetooth(R)                                Not shared
+3-1    10c4:ea70  Silicon Labs Dual CP2105 USB to UART Bridge: Enhanced COM...  Attached
+3-2    0d8c:0016  USB Audio Device, USB Input Device                            Not shared
+3-3    26aa:0030  USB Serial Device (COM6)                                      Not shared
+
+Persisted:
+GUID                                  DEVICE
+```
+### 2A.3 Verifiy in WSL
+
+```bash
+$ $ lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 002: ID 10c4:ea70 Silicon Labs CP2105 Dual UART Bridge
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+```
+
+### 2A.4 Detaching a shared device 
+
+In a powershell prompt
+```powershell
+> usbipd detach --busid 3-1
 ```
 
 ---
