@@ -1,6 +1,6 @@
 import serial
 import time
-from typing import Optional, Literal, Tuple
+from typing import Literal, Tuple
 from enum import Enum
 
 class OperatingMode(Enum):
@@ -205,23 +205,24 @@ def get_ptt_status(ftx: FTX1Controller) -> bool:
 # POWER CONTROL
 # =============================================================================
 
-def set_rf_power(ftx: FTX1Controller, power_watts: int, unit: Literal[1, 2] = 1) -> None:
+def set_rf_power(ftx: FTX1Controller, power_watts: float, unit: Literal[1, 2] = 1) -> None:
     """
     Set RF output power
     
     Args:
         ftx: FTX1Controller instance
         power_watts: Power in watts
-        unit: 1 for FTX-1 Field (5-10W), 2 for SPA-1 (5-100W)
+        unit: 1 for FTX-1 Field (1-10W), 2 for SPA-1 (5-100W)
         
     Example:
         set_rf_power(ftx, 10)   # Set to 10W
         set_rf_power(ftx, 50, unit=2)  # Set to 50W with SPA-1
     """
+    #TODO check setting tenths of watt, especially for field config
     ftx._send_command(f"PC{unit}{power_watts:03d}")
 
 
-def get_rf_power(ftx: FTX1Controller) -> Tuple[int, int]:
+def get_rf_power(ftx: FTX1Controller) -> Tuple[int, float]:
     """
     Get RF output power setting
     
@@ -230,7 +231,7 @@ def get_rf_power(ftx: FTX1Controller) -> Tuple[int, int]:
     """
     response = ftx._send_command("PC")
     unit = int(response[2])
-    power = int(response[3:6])
+    power = float(response[3:6])
     return (unit, power)
 
 
