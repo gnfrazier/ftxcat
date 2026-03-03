@@ -216,10 +216,11 @@ def set_rf_power(ftx: FTX1Controller, power_watts: float, unit: Literal[1, 2] = 
         
     Example:
         set_rf_power(ftx, 10)   # Set to 10W
+        set_rf_power(ftx, 4.1)   # Set to 4.1W
         set_rf_power(ftx, 50, unit=2)  # Set to 50W with SPA-1
     """
-    #TODO check setting tenths of watt, especially for field config
-    ftx._send_command(f"PC{unit}{power_watts:03d}")
+    # Modified from CAT manual to send decimal power.
+    ftx._send_command(f"PC{unit}{power_watts:03.1f}")
 
 
 def get_rf_power(ftx: FTX1Controller) -> Tuple[int, float]:
